@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WordFlip</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WordFlip">
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--text:#1d2033;--muted:#7a7f99;--accent:#fd6a45;--accentbg:#ffece6;--ok:#2fb573;--bad:#e5534b;--line:#e2e5f0;--dark:#1d2033}
+html.dark{--bg:#14161f;--card:#1f2230;--text:#eef0f8;--muted:#9097b3;--accent:#ff8c6b;--accentbg:#3a2a26;--line:#2d3247;--dark:#0e0f16}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;padding-bottom:70px;padding-top:env(safe-area-inset-top,0px)}
+.scr{display:none}
+.scr.on{display:block}
+h1{font-size:22px;margin:4px 0 10px}
+.label{font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.row2{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--text);padding:6px 10px;border-radius:999px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin:14px 14px 0 14px}
+.bar div{height:100%;background:var(--ok);transition:width .3s}
+.stat{font-size:14px;color:var(--muted);display:flex;justify-content:space-between;margin:8px 14px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;margin:14px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.06);user-select:none}
+.word{font-size:34px;font-weight:700;word-break:break-word}
+.pron{color:var(--muted);font-size:16px;margin-top:6px}
+.tr{font-size:24px;margin-top:12px;word-break:break-word}
+.hint{color:var(--muted);font-size:14px;margin-top:14px}
+.end{font-size:18px;font-weight:600}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px}
+.act{padding:14px;border:0;border-radius:14px;font-size:16px;font-weight:600;color:#fff;cursor:pointer}
+.bad{background:var(--bad)}.ok{background:var(--ok)}.main{background:var(--accent);grid-column:1/3}
+.act.opt{background:var(--card);color:var(--text);border:1px solid var(--line);font-size:17px}
+.act.opt.correct{background:var(--ok);color:#fff;border-color:var(--ok)}
+.act.opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad)}
+.act[disabled]{opacity:.75;cursor:default}
+.link{background:none;border:0;color:var(--accent);font-size:15px;cursor:pointer;padding:0;margin:4px 14px 14px 14px}
+form{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 14px 14px 14px}
+form.open{display:block}
+input{width:100%;padding:10px;margin:4px 0 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-size:16px}
+.slotrow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:18px;min-height:44px}
+.slot{width:36px;height:42px;border:2px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;cursor:pointer}
+.poolrow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.tile{width:40px;height:44px;border-radius:10px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;cursor:pointer}
+.tile.used{visibility:hidden}
+.feedback{margin-top:12px;font-size:15px;font-weight:600}
+.feedback.ok{color:var(--ok)}
+.feedback.bad{color:var(--bad)}
+.topbar{display:flex;align-items:center;gap:10px;padding:16px 14px 0 14px}
+.topbar .back{background:var(--card);border:1px solid var(--line);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+.nav{position:fixed;left:0;right:0;bottom:0;max-width:460px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px)) 10px;background:var(--bg);border-top:1px solid var(--line)}
+.navitem{position:relative;flex:1;text-align:center;background:none;border:0;cursor:pointer;color:var(--muted);padding:2px 0}
+.navitem.on{color:var(--text)}
+.navitem.on::before{content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:34px;height:3px;border-radius:0 0 4px 4px;background:var(--accent)}
+.navtile{width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.navtile svg{width:26px;height:26px}
+.navlbl{font-size:11px;font-weight:600;margin-top:2px;color:inherit}
+
+.qa{display:flex;gap:14px;padding:18px 14px 0 14px;overflow-x:auto}
+.qatile{width:72px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.qaicon{width:56px;height:56px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text)}
+.qalbl{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+.goal{margin:20px 14px 0 14px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
+.wod{margin:14px 14px 0 14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.prow{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0 14px 10px 14px;cursor:pointer}
+.pic{width:28px;height:28px;border-radius:8px;background:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text)}
+.pic svg{width:24px;height:24px}
+.toggle{width:40px;height:24px;border-radius:999px;background:var(--line);position:relative;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle.on i{left:19px}
+.badge{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center}
+.badge.locked{opacity:.4}
+.bi{width:48px;height:48px;border-radius:50%;background:var(--accentbg);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.inp2{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 12px 0;color:var(--text);font-size:15px;width:100%}
+.inp2::placeholder{color:var(--muted)}
+.statbox{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+#addToggle,#addForm{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ЛОГИН -->
+<div class="scr" id="scr-login">
+  <div style="display:flex;flex-direction:column;align-items:center;padding-top:90px">
+    <svg width="84" height="84" viewBox="0 0 100 100">
+      <rect x="30" y="4" width="48" height="60" rx="12" transform="rotate(18 54 34)" fill="#3f7fc9"/>
+      <rect x="12" y="22" width="60" height="64" rx="14" fill="#2f6bb0"/>
+      <path d="M12 70 a14 14 0 0 1 14 -14 h34 l12 -34 h0 a14 14 0 0 1 12 20 l-10 28 z" fill="var(--accent)" opacity=".92"/>
+      <path d="M68 10c7 0 11 6 10 13" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M84 14l-4 9-9-3" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div style="font-size:22px;font-weight:700;margin-top:18px">С возвращением</div>
+    <div style="font-size:14px;color:var(--muted);margin-top:4px">Войдите, чтобы продолжить обучение</div>
+    <div style="width:100%;padding:0 28px;margin-top:34px">
+      <input class="inp2" id="loginName" placeholder="Ваше имя">
+      <button type="button" class="act main" style="width:100%" id="btnLogin">Войти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОНБОРДИНГ -->
+<div class="scr" id="scr-onb">
+  <div class="topbar" style="padding:16px 28px 0 28px">
+    <div class="back" data-back-to="login"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+  </div>
+  <div style="padding:14px 28px 0 28px">
+    <svg width="64" height="64" viewBox="0 0 100 100">
+      <rect x="30" y="4" width="48" height="60" rx="12" transform="rotate(18 54 34)" fill="#3f7fc9"/>
+      <rect x="12" y="22" width="60" height="64" rx="14" fill="#2f6bb0"/>
+      <path d="M12 70 a14 14 0 0 1 14 -14 h34 l12 -34 h0 a14 14 0 0 1 12 20 l-10 28 z" fill="var(--accent)" opacity=".92"/>
+      <path d="M68 10c7 0 11 6 10 13" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M84 14l-4 9-9-3" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div style="font-size:23px;font-weight:700;margin-top:20px">Какой язык хотите выучить?</div>
+    <div style="font-size:14px;color:var(--muted);margin-top:6px">Можно изменить в любой момент</div>
+  </div>
+  <div id="onbList" style="margin-top:26px"></div>
+  <div style="padding:10px 28px 30px 28px">
+    <button type="button" class="act main" style="width:100%" id="btnOnbNext">Продолжить</button>
+  </div>
+</div>
+
+<!-- ГЛАВНЫЙ -->
+<div class="scr" id="scr-home">
+  <div style="padding:26px 14px 0 14px;display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div class="label" style="margin:0">Сегодня</div>
+      <div id="homeGreet" style="font-size:22px;font-weight:700;margin-top:4px"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;background:var(--accentbg);border-radius:999px;padding:8px 12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#e8743b"><path d="M12 2c1 4-4 5-4 9a4 4 0 0 0 8 0c0-1.5-1-2-1-3 1.5 1 3 3 3 5.5A6.5 6.5 0 0 1 11.5 20 6.5 6.5 0 0 1 5 13.5C5 8 10 6 12 2z"/></svg>
+      <span style="font-size:14px;font-weight:700;color:#e8743b">7</span>
+    </div>
+  </div>
+
+  <div class="qa">
+    <div class="qatile" data-go="trainer" data-gmode="cards"><div class="qaicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5" opacity=".0"/></svg></div><div class="qalbl">Карточки</div></div>
+    <div class="qatile" data-go="trainer" data-gmode="guess"><div class="qaicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v.01M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.7.4-1 .9-1 1.6"/></svg></div><div class="qalbl">Угадай слово</div></div>
+    <div class="qatile" data-go="trainer" data-gmode="scramble"><div class="qaicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></div><div class="qalbl">Собери слово</div></div>
+    <div class="qatile" data-go="trainer" data-gmode="speed"><div class="qaicon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12l1-8z"/></svg></div><div class="qalbl">На скорость</div></div>
+  </div>
+
+  <div class="goal">
+    <div class="label" style="margin:0">Сегодняшняя цель</div>
+    <div id="goalTitle" style="font-size:20px;font-weight:700;margin-top:6px"></div>
+    <div class="bar" style="margin:16px 0 0 0"><div id="goalBar" style="width:0%"></div></div>
+    <button type="button" class="act main" style="width:100%;margin-top:16px" data-go="trainer" data-gmode="cards">Начать повторение</button>
+  </div>
+
+  <div class="wod" data-go="trainer" data-gmode="cards">
+    <div>
+      <div style="font-size:12px;color:var(--muted)">Слово дня</div>
+      <div id="wodText" style="font-size:18px;font-weight:700;margin-top:2px"></div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </div>
+</div>
+
+<!-- СТАТИСТИКА -->
+<div class="scr" id="scr-stats">
+  <div style="padding:26px 14px 0 14px"><div style="font-size:22px;font-weight:700">Статистика</div></div>
+  <div style="display:flex;gap:10px;padding:18px 14px 0 14px">
+    <div class="statbox"><div id="stWords" style="font-size:20px;font-weight:800;color:var(--accent)"></div><div style="font-size:11px;color:var(--muted);margin-top:4px">слов выучено</div></div>
+    <div class="statbox"><div id="stGames" style="font-size:20px;font-weight:800;color:var(--accent)"></div><div style="font-size:11px;color:var(--muted);margin-top:4px">игр сыграно</div></div>
+    <div class="statbox"><div id="stBest" style="font-size:20px;font-weight:800;color:var(--accent)"></div><div style="font-size:11px;color:var(--muted);margin-top:4px">лучший результат</div></div>
+  </div>
+  <div class="label" style="padding:0 14px">Достижения</div>
+  <div id="achGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px"></div>
+</div>
+
+<!-- ПРОФИЛЬ -->
+<div class="scr" id="scr-profile">
+  <div style="padding:26px 14px 0 14px;text-align:center">
+    <div style="width:92px;height:92px;border-radius:50%;background:var(--accent);margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer" id="avatarBox">
+      <svg id="avatarIcon" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.4-4.3 4.8-6.5 7.5-6.5S18.1 15.7 19.5 20"/></svg>
+      <img id="avatarImg" style="display:none;width:100%;height:100%;object-fit:cover">
+    </div>
+    <input type="file" accept="image/*" id="photoInput" style="display:none">
+    <div style="font-size:13px;color:var(--accent);font-weight:600;margin-top:10px;cursor:pointer" id="btnPhoto">Изменить фото</div>
+  </div>
+
+  <div class="label" style="padding:0 14px;margin-top:22px">Данные профиля</div>
+  <div class="prow"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.2-4 4.2-6 7-6s5.8 2 7 6"/></svg></div>
+    <div style="flex:1"><div style="font-size:13px;color:var(--muted)">Имя</div><input class="inp2" style="margin:2px 0 0 0;padding:4px 0;border:0;background:none" id="inpName"></div>
+  </div>
+  <div class="prow"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7.5 10h5M7.5 14h9"/></svg></div>
+    <div style="flex:1"><div style="font-size:13px;color:var(--muted)">Фамилия</div><input class="inp2" style="margin:2px 0 0 0;padding:4px 0;border:0;background:none" id="inpSurname" placeholder="Не указана"></div>
+  </div>
+
+  <div class="label" style="padding:0 14px">Настройки</div>
+  <div class="prow" id="rowDark"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></div><div style="flex:1;font-weight:600">Тёмная тема</div><div class="toggle" id="toggleDark"><i></i></div></div>
+  <div class="prow" id="rowLang"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5c2.2 2.4 3.3 5.3 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.3-3.3-8.5S9.8 5.9 12 3.5zM3.5 12h17"/></svg></div><div style="flex:1;font-weight:600">Язык интерфейса</div><div id="langVal" style="font-size:14px;color:var(--muted)"></div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+  <div class="prow" id="rowLearnLang"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="15" height="11" rx="3"/><rect x="6" y="4" width="15" height="11" rx="3" fill="var(--card)"/></svg></div><div style="flex:1;font-weight:600">Язык для изучения</div><div id="learnLangVal" style="font-size:14px;color:var(--muted)"></div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+  <div class="prow" id="rowCal"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></div><div style="flex:1;font-weight:600">Календарь занятий</div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+  <div class="prow" id="rowAbout"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 8v.01"/></svg></div><div style="flex:1;font-weight:600">О приложении</div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+  <div id="infoPanel" style="display:none;margin:0 14px 14px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13px;color:var(--muted)"></div>
+
+  <div class="prow" style="justify-content:center" id="btnLogout"><span style="color:var(--bad);font-weight:600">Выйти из аккаунта</span></div>
+</div>
+
+<!-- ТРЕНАЖЁР (карточки и игры) -->
+<div class="scr" id="scr-trainer">
+  <div class="topbar">
+    <div class="back" id="btnBack"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <h1 id="ttl" style="margin:0"></h1>
+  </div>
+  <div class="bar" id="trainerBar"><div id="bar" style="width:0%"></div></div>
+  <div class="stat"><span id="stKnown"></span><span id="stLeft"></span></div>
+
+  <div class="card" id="card"></div>
+  <div class="btns" id="btns"></div>
+
+  <button class="link" id="addToggle" type="button"></button>
+  <form id="addForm">
+    <div class="label" id="lW"></div><input id="inW" autocomplete="off">
+    <div class="label" id="lT"></div><input id="inT" autocomplete="off">
+    <button class="act ok" style="width:100%" id="addBtn" type="button"></button>
+  </form>
+</div>
+
+<!-- ДОБАВИТЬ СЛОВО -->
+<div class="scr" id="scr-addword">
+  <div class="topbar">
+    <div class="back" data-back-to="home"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <h1 style="margin:0" id="awTitle">Добавить слово</h1>
+  </div>
+  <div class="label" style="padding:0 14px" id="awLangLbl"></div>
+  <form id="addForm2" style="display:block">
+    <div class="label" id="lW2">Слово</div><input id="inW2" autocomplete="off">
+    <div class="label" id="lT2">Перевод</div><input id="inT2" autocomplete="off">
+    <button class="act ok" style="width:100%" id="addBtn2" type="button">Сохранить</button>
+  </form>
+</div>
+
+<!-- НИЖНЯЯ НАВИГАЦИЯ -->
+<div class="nav" id="bottomNav">
+  <button class="navitem" data-nav="home"><div class="navtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.2 12 4l8 7.2V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5H9v5.5H5.5A1.5 1.5 0 0 1 4 19z"/></svg></div><div class="navlbl">Сегодня</div></button>
+  <button class="navitem" data-nav="stats"><div class="navtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 19.5v-8M12 19.5v-14M18.5 19.5v-9"/></svg></div><div class="navlbl">Статистика</div></button>
+  <button class="navitem" data-nav="addword"><div class="navtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="navlbl">Добавить</div></button>
+  <button class="navitem" data-nav="profile"><div class="navtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/></svg></div><div class="navlbl">Профиль</div></button>
+</div>
+
+</div>
+
+<script>
+const UI_LANGS = {en:"English", ru:"Русский", tg:"Тоҷикӣ", de:"Deutsch"};
+const LEARN = {en:"English", de:"Deutsch", es:"Español", fr:"Français", zh:"中文"};
+const MODES = ["cards","guess","scramble","speed"];
+
+const T = {
+  en:{title:"Flashcards",lang:"Language to learn",mode:"Mode",known:"Known",left:"Left",flip:"Tap the card to see the translation",show:"Show answer",know:"I know it",dont:"Don't know",done:"All words in this deck are learned!",again:"Start again",add:"+ Add my own word",word:"Word",tr:"Translation",save:"Save word",empty:"Enter a word and its translation",
+    modeCards:"Flashcards",modeGuess:"Guess",modeScramble:"Unscramble",modeSpeed:"Speed",score:"Score",next:"Next",playAgain:"Play again",roundDone:"Round complete!",timeUp:"Time's up!",clear:"Clear",time:"Time",correctIs:"Correct answer:"},
+  ru:{title:"Карточки",lang:"Язык для изучения",mode:"Режим",known:"Выучено",left:"Осталось",flip:"Нажмите на карточку, чтобы увидеть перевод",show:"Показать ответ",know:"Знаю",dont:"Не знаю",done:"Все слова колоды выучены!",again:"Начать заново",add:"+ Добавить своё слово",word:"Слово",tr:"Перевод",save:"Сохранить",empty:"Введите слово и перевод",
+    modeCards:"Карточки",modeGuess:"Угадай",modeScramble:"Собери",modeSpeed:"Скорость",score:"Счёт",next:"Далее",playAgain:"Играть снова",roundDone:"Раунд завершён!",timeUp:"Время вышло!",clear:"Очистить",time:"Время",correctIs:"Правильный ответ:"},
+  tg:{title:"Кортҳо",lang:"Забони омӯзиш",mode:"Реҷа",known:"Омӯхта",left:"Монда",flip:"Барои дидани тарҷума кортро пахш кунед",show:"Ҷавобро нишон деҳ",know:"Медонам",dont:"Намедонам",done:"Ҳама калимаҳои ин маҷмӯа омӯхта шуданд!",again:"Аз нав оғоз",add:"+ Калимаи худро илова кунед",word:"Калима",tr:"Тарҷума",save:"Захира кардан",empty:"Калима ва тарҷумаро ворид кунед",
+    modeCards:"Кортҳо",modeGuess:"Тахмин",modeScramble:"Ҷамъ кун",modeSpeed:"Суръат",score:"Хол",next:"Баъдӣ",playAgain:"Бозӣ аз нав",roundDone:"Давра анҷом ёфт!",timeUp:"Вақт тамом шуд!",clear:"Пок кардан",time:"Вақт",correctIs:"Ҷавоби дуруст:"},
+  de:{title:"Karteikarten",lang:"Lernsprache",mode:"Modus",known:"Gelernt",left:"Übrig",flip:"Tippen Sie auf die Karte, um die Übersetzung zu sehen",show:"Antwort zeigen",know:"Ich weiß es",dont:"Weiß ich nicht",done:"Alle Wörter dieses Decks sind gelernt!",again:"Neu starten",add:"+ Eigenes Wort hinzufügen",word:"Wort",tr:"Übersetzung",save:"Speichern",empty:"Wort und Übersetzung eingeben",
+    modeCards:"Karten",modeGuess:"Raten",modeScramble:"Wort bilden",modeSpeed:"Tempo",score:"Punkte",next:"Weiter",playAgain:"Nochmal spielen",roundDone:"Runde beendet!",timeUp:"Zeit abgelaufen!",clear:"Löschen",time:"Zeit",correctIs:"Richtige Antwort:"}
+};
+
+const BASE = [
+  {t:{en:"Hello",ru:"Привет",tg:"Салом",de:"Hallo"}, L:{en:"Hello",de:"Hallo",es:"Hola",fr:"Bonjour",zh:"你好"}, p:{zh:"nǐ hǎo"}},
+  {t:{en:"Thank you",ru:"Спасибо",tg:"Ташаккур",de:"Danke"}, L:{en:"Thank you",de:"Danke",es:"Gracias",fr:"Merci",zh:"谢谢"}, p:{zh:"xièxie"}},
+  {t:{en:"Water",ru:"Вода",tg:"Об",de:"Wasser"}, L:{en:"Water",de:"Wasser",es:"Agua",fr:"Eau",zh:"水"}, p:{zh:"shuǐ"}},
+  {t:{en:"House",ru:"Дом",tg:"Хона",de:"Haus"}, L:{en:"House",de:"Haus",es:"Casa",fr:"Maison",zh:"房子"}, p:{zh:"fángzi"}},
+  {t:{en:"Book",ru:"Книга",tg:"Китоб",de:"Buch"}, L:{en:"Book",de:"Buch",es:"Libro",fr:"Livre",zh:"书"}, p:{zh:"shū"}},
+  {t:{en:"Friend",ru:"Друг",tg:"Дӯст",de:"Freund"}, L:{en:"Friend",de:"Freund",es:"Amigo",fr:"Ami",zh:"朋友"}, p:{zh:"péngyou"}},
+  {t:{en:"Bread",ru:"Хлеб",tg:"Нон",de:"Brot"}, L:{en:"Bread",de:"Brot",es:"Pan",fr:"Pain",zh:"面包"}, p:{zh:"miànbāo"}},
+  {t:{en:"Good",ru:"Хорошо",tg:"Хуб",de:"Gut"}, L:{en:"Good",de:"Gut",es:"Bueno",fr:"Bon",zh:"好"}, p:{zh:"hǎo"}}
+];
+
+let ui="ru", lang="en", mode="cards", flipped=false, queue=[], known=new Set();
+let guessState=null, scrambleState=null, speedState=null;
+const custom = {en:[], de:[], es:[], fr:[], zh:[]};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+
+let screen="login", darkMode=false, gamesPlayed=0, bestAccuracy=0, loggedIn=false, onboarded=false;
+let userName="", userSurname="", userPhoto=null, infoOpen=false;
+
+function deck(){
+  return BASE.map((w,i)=>({id:lang+i, front:w.L[lang], back:w.t[ui], pron:(w.p&&w.p[lang])||""})).concat(custom[lang]);
+}
+
+function rebuild(){ queue = deck().filter(c=>!known.has(c.id)).sort(()=>Math.random()-0.5); flipped=false; renderTrainer(); }
+function flip(){ flipped=true; renderTrainer(); }
+function answer(ok){
+  const c = queue.shift();
+  if (ok) known.add(c.id); else queue.splice(Math.min(queue.length,2+Math.floor(Math.random()*3)),0,c);
+  flipped=false; renderTrainer();
+}
+function restart(){ deck().forEach(c=>known.delete(c.id)); rebuild(); }
+
+function startGuess(){
+  const pool=deck(); gamesPlayed++;
+  guessState={queue:shuffle(pool.slice()),idx:0,score:0,total:pool.length,options:null,picked:null,counted:false};
+  if (pool.length) loadGuessOptions();
+}
+function loadGuessOptions(){
+  const pool=deck(), c=guessState.queue[guessState.idx];
+  const d=shuffle(pool.filter(x=>x.id!==c.id)).slice(0,Math.min(3,pool.length-1));
+  guessState.options=shuffle([c,...d]); guessState.picked=null;
+}
+function pickGuess(i){ if(guessState.picked!==null)return; guessState.picked=i; const c=guessState.queue[guessState.idx]; if(guessState.options[i].id===c.id)guessState.score++; renderTrainer(); }
+function nextGuess(){ guessState.idx++; if(guessState.queue[guessState.idx]) loadGuessOptions(); renderTrainer(); }
+
+function wordsNoSpace(){ return deck().filter(c=>!c.front.includes(" ")); }
+function shuffleChars(arr){ if(arr.length<2)return arr.slice(); let out=shuffle(arr.slice()),t=0; while(out.join("")===arr.join("")&&t<5){out=shuffle(arr.slice());t++;} return out; }
+function startScramble(){
+  const pool=shuffle(wordsNoSpace()); gamesPlayed++;
+  scrambleState={queue:pool,idx:0,score:0,total:pool.length,letters:null,answer:[],checked:false,ok:false,counted:false};
+  if(pool.length) loadScrambleWord();
+}
+function loadScrambleWord(){
+  const c=scrambleState.queue[scrambleState.idx];
+  scrambleState.letters=shuffleChars(Array.from(c.front)).map(ch=>({ch,used:false}));
+  scrambleState.answer=[]; scrambleState.checked=false;
+}
+function tileClick(i){ if(scrambleState.checked||scrambleState.letters[i].used)return; scrambleState.letters[i].used=true; scrambleState.answer.push(i); if(scrambleState.answer.length===scrambleState.letters.length) doCheckScramble(); renderTrainer(); }
+function slotClick(pos){ if(scrambleState.checked)return; const i=scrambleState.answer[pos]; scrambleState.letters[i].used=false; scrambleState.answer.splice(pos,1); renderTrainer(); }
+function clearScramble(){ if(scrambleState.checked)return; scrambleState.answer.forEach(i=>scrambleState.letters[i].used=false); scrambleState.answer=[]; renderTrainer(); }
+function doCheckScramble(){
+  scrambleState.checked=true; const c=scrambleState.queue[scrambleState.idx];
+  const built=scrambleState.answer.map(i=>scrambleState.letters[i].ch).join("");
+  scrambleState.ok = built.toLowerCase()===c.front.toLowerCase();
+  if(scrambleState.ok) scrambleState.score++;
+}
+function nextScramble(){ scrambleState.idx++; if(scrambleState.queue[scrambleState.idx]) loadScrambleWord(); renderTrainer(); }
+
+function loopPool(pool){ let a=[]; for(let k=0;k<20;k++) a=a.concat(shuffle(pool.slice())); return a; }
+function startSpeed(){
+  if(speedState&&speedState.timer) clearInterval(speedState.timer);
+  const pool=deck(); gamesPlayed++;
+  speedState={queue:loopPool(pool),idx:0,score:0,timeLeft:60,options:null,picked:null,running:true,timer:null,counted:false};
+  if(pool.length){ loadSpeedOptions(); speedState.timer=setInterval(speedTick,1000); }
+}
+function loadSpeedOptions(){ const pool=deck(), c=speedState.queue[speedState.idx]; const d=shuffle(pool.filter(x=>x.id!==c.id)).slice(0,Math.min(3,pool.length-1)); speedState.options=shuffle([c,...d]); speedState.picked=null; }
+function speedTick(){ speedState.timeLeft--; if(speedState.timeLeft<=0){ speedState.running=false; clearInterval(speedState.timer); } renderTrainer(); }
+function pickSpeed(i){
+  if(!speedState.running||speedState.picked!==null)return;
+  speedState.picked=i; const c=speedState.queue[speedState.idx];
+  if(speedState.options[i].id===c.id) speedState.score++;
+  renderTrainer();
+  setTimeout(()=>{ if(!speedState.running)return; speedState.idx++; loadSpeedOptions(); renderTrainer(); },450);
+}
+
+function setMode(m){
+  if(mode==="speed"&&speedState&&speedState.timer) clearInterval(speedState.timer);
+  mode=m;
+  if(m==="cards") rebuild();
+  else if(m==="guess"){ startGuess(); renderTrainer(); }
+  else if(m==="scramble"){ startScramble(); renderTrainer(); }
+  else if(m==="speed"){ startSpeed(); renderTrainer(); }
+}
+
+function addWord2(){
+  const w=$("inW2").value.trim(), tr=$("inT2").value.trim();
+  if(!w||!tr){ alert(T[ui].empty); return; }
+  custom[lang].push({id:"c"+Date.now()+Math.random().toString(36).slice(2), front:w, back:tr, pron:""});
+  $("inW2").value=""; $("inT2").value="";
+  if(mode==="cards") rebuild();
+  saveState();
+  goScreen("home");
+}
+function renderAddWord(){
+  const t=T[ui];
+  $("awLangLbl").textContent = (T[ui].lang)+": "+LEARN[lang];
+  $("lW2").textContent=t.word; $("lT2").textContent=t.tr; $("addBtn2").textContent=t.save;
+}
+
+function renderTrainer(){
+  const t=T[ui];
+  $("ttl").textContent=t["mode"+mode[0].toUpperCase()+mode.slice(1)];
+  const card=$("card"), btns=$("btns");
+  if(mode==="cards") return renderCards(t,card,btns);
+  if(mode==="guess") return renderGuess(t,card,btns);
+  if(mode==="scramble") return renderScramble(t,card,btns);
+  if(mode==="speed") return renderSpeed(t,card,btns);
+}
+
+function renderCards(t,card,btns){
+  $("trainerBar").style.display="none"; $("stKnown").textContent=""; $("stLeft").textContent="";
+  const d=deck();
+  if(!queue.length){ card.innerHTML=`<div class="end">${t.done}</div>`; card.onclick=null; btns.innerHTML=`<button class="act main" id="restart">${t.again}</button>`; return; }
+  const c=queue[0];
+  card.innerHTML=`<div class="word">${esc(c.front)}</div>`+(c.pron?`<div class="pron">${esc(c.pron)}</div>`:"")+(flipped?`<div class="tr">${esc(c.back)}</div>`:`<div class="hint">${t.flip}</div>`);
+  card.onclick=()=>{ if(!flipped) flip(); };
+  btns.innerHTML=flipped?`<button class="act bad" id="no">${t.dont}</button><button class="act ok" id="yes">${t.know}</button>`:`<button class="act main" id="show">${t.show}</button>`;
+}
+
+function renderGuess(t,card,btns){
+  $("trainerBar").style.display=""; card.onclick=null;
+  if(!guessState||!guessState.options){ card.innerHTML=`<div class="end">${t.done}</div>`; btns.innerHTML=""; return; }
+  const g=guessState;
+  $("stKnown").textContent=`${t.score}: ${g.score}`; $("stLeft").textContent=`${g.idx+1} / ${g.total}`; $("bar").style.width=(g.idx/g.total*100)+"%";
+  if(!g.queue[g.idx]){
+    if(!g.counted){ g.counted=true; bestAccuracy=Math.max(bestAccuracy, g.total?Math.round(g.score/g.total*100):0); }
+    card.innerHTML=`<div class="end">${t.roundDone}<br>${t.score}: ${g.score} / ${g.total}</div>`;
+    btns.innerHTML=`<button class="act main" id="replay">${t.playAgain}</button>`; return;
+  }
+  const c=g.queue[g.idx];
+  if(g.picked===null){ card.innerHTML=`<div class="tr">${esc(c.back)}</div>`; btns.innerHTML=g.options.map((o,i)=>`<button class="act opt" data-opt="${i}">${esc(o.front)}</button>`).join(""); }
+  else{
+    const ok=g.options[g.picked].id===c.id;
+    card.innerHTML=`<div class="tr">${esc(c.back)}</div><div class="feedback ${ok?"ok":"bad"}">${ok?"✓":"✗ "+t.correctIs+" "+esc(c.front)}</div>`;
+    btns.innerHTML=g.options.map((o,i)=>{let cl="act opt";if(o.id===c.id)cl+=" correct";else if(i===g.picked)cl+=" wrong";return `<button class="${cl}" disabled>${esc(o.front)}</button>`;}).join("")+`<button class="act main" id="next" style="margin-top:10px">${t.next}</button>`;
+  }
+}
+
+function renderScramble(t,card,btns){
+  $("trainerBar").style.display=""; card.onclick=null;
+  if(!scrambleState||!scrambleState.letters){ card.innerHTML=`<div class="end">${t.done}</div>`; btns.innerHTML=""; return; }
+  const s=scrambleState;
+  $("stKnown").textContent=`${t.score}: ${s.score}`; $("stLeft").textContent=`${s.idx+1} / ${s.total}`; $("bar").style.width=(s.idx/s.total*100)+"%";
+  if(!s.queue[s.idx]){
+    if(!s.counted){ s.counted=true; bestAccuracy=Math.max(bestAccuracy, s.total?Math.round(s.score/s.total*100):0); }
+    card.innerHTML=`<div class="end">${t.roundDone}<br>${t.score}: ${s.score} / ${s.total}</div>`;
+    btns.innerHTML=`<button class="act main" id="replay">${t.playAgain}</button>`; return;
+  }
+  const c=s.queue[s.idx];
+  const slots=s.answer.map((i,pos)=>`<div class="slot" data-slot="${pos}">${esc(s.letters[i].ch)}</div>`).join("");
+  const pool=s.letters.map((l,i)=>`<div class="tile ${l.used?"used":""}" data-tile="${i}">${esc(l.ch)}</div>`).join("");
+  const fb=s.checked?`<div class="feedback ${s.ok?"ok":"bad"}">${s.ok?"✓":"✗ "+t.correctIs+" "+esc(c.front)}</div>`:"";
+  card.innerHTML=`<div class="tr">${esc(c.back)}</div><div class="slotrow">${slots}</div><div class="poolrow">${pool}</div>${fb}`;
+  btns.innerHTML=s.checked?`<button class="act main" id="next">${t.next}</button>`:`<button class="act opt" id="clearS">${t.clear}</button>`;
+}
+
+function renderSpeed(t,card,btns){
+  $("trainerBar").style.display=""; card.onclick=null;
+  if(!speedState||!speedState.options){ card.innerHTML=`<div class="end">${t.done}</div>`; btns.innerHTML=""; return; }
+  const sp=speedState;
+  $("stKnown").textContent=`${t.score}: ${sp.score}`; $("stLeft").textContent=`${t.time}: ${sp.timeLeft}s`; $("bar").style.width=(sp.timeLeft/60*100)+"%";
+  if(!sp.running){
+    if(!sp.counted){ sp.counted=true; bestAccuracy=Math.max(bestAccuracy, sp.idx?Math.round(sp.score/sp.idx*100):0); }
+    card.innerHTML=`<div class="end">${t.timeUp}<br>${t.score}: ${sp.score}</div>`;
+    btns.innerHTML=`<button class="act main" id="replay">${t.playAgain}</button>`; return;
+  }
+  const c=sp.queue[sp.idx];
+  if(sp.picked===null){ card.innerHTML=`<div class="tr">${esc(c.back)}</div>`; btns.innerHTML=sp.options.map((o,i)=>`<button class="act opt" data-opt="${i}">${esc(o.front)}</button>`).join(""); }
+  else{
+    const ok=sp.options[sp.picked].id===c.id;
+    card.innerHTML=`<div class="tr">${esc(c.back)}</div><div class="feedback ${ok?"ok":"bad"}">${ok?"✓":"✗"}</div>`;
+    btns.innerHTML=sp.options.map((o,i)=>{let cl="act opt";if(o.id===c.id)cl+=" correct";else if(i===sp.picked)cl+=" wrong";return `<button class="${cl}" disabled>${esc(o.front)}</button>`;}).join("");
+  }
+}
+
+function goScreen(name){
+  screen=name;
+  document.querySelectorAll(".scr").forEach(s=>s.classList.remove("on"));
+  $("scr-"+name).classList.add("on");
+  $("bottomNav").style.display = (name==="home"||name==="stats"||name==="profile"||name==="addword") ? "flex" : "none";
+  renderNav();
+  if(name==="home") renderHome();
+  if(name==="stats") renderStats();
+  if(name==="profile") renderProfile();
+  if(name==="onb") renderOnboarding();
+  if(name==="addword") renderAddWord();
+  window.scrollTo(0,0);
+  saveState();
+}
+
+function renderNav(){
+  document.querySelectorAll(".navitem").forEach(b=>b.classList.toggle("on", b.dataset.nav===screen));
+}
+
+function renderHome(){
+  $("homeGreet").textContent = "Добрый вечер, "+userName;
+  const d=deck(), total=d.length, k=d.filter(c=>known.has(c.id)).length, left=Math.max(total-k,0);
+  $("goalTitle").textContent = left>0 ? `${left} слов ждут повторения` : "Все слова изучены — отличная работа!";
+  $("goalBar").style.width = (total?k/total*100:0)+"%";
+  const w = d[0];
+  $("wodText").textContent = w ? `${w.front} → ${w.back}` : "";
+}
+
+function achievementsList(){
+  const learnedLangs = new Set(Array.from(known).map(id=>id.slice(0,2)).filter(c=>LEARN[c]));
+  return [
+    {icon:"flame", lbl:"7 дней подряд", on:true},
+    {icon:"book", lbl:"5 слов выучено", on:known.size>=5},
+    {icon:"star", lbl:"Игра на 100%", on:bestAccuracy>=100},
+    {icon:"trophy", lbl:"15 слов выучено", on:known.size>=15},
+    {icon:"lock", lbl:"3 игры сыграно", on:gamesPlayed>=3},
+    {icon:"lock", lbl:"Полиглот — 2 языка", on:learnedLangs.size>=2}
+  ];
+}
+const ICONS = {
+  flame:'<svg width="22" height="22" viewBox="0 0 24 24" fill="#e8743b"><path d="M12 2c1 4-4 5-4 9a4 4 0 0 0 8 0c0-1.5-1-2-1-3 1.5 1 3 3 3 5.5A6.5 6.5 0 0 1 11.5 20 6.5 6.5 0 0 1 5 13.5C5 8 10 6 12 2z"/></svg>',
+  book:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 12.5l9 5 9-5"/></svg>',
+  star:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.8 6.4 20l1.3-6.2L3 9.5l6.3-.7z"/></svg>',
+  trophy:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3M12 13v4M8.5 20h7"/></svg>',
+  lock:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+};
+
+function renderStats(){
+  $("stWords").textContent = known.size;
+  $("stGames").textContent = gamesPlayed;
+  $("stBest").textContent = bestAccuracy+"%";
+  const list = achievementsList();
+  $("achGrid").innerHTML = list.map(a=>`<div class="badge ${a.on?"":"locked"}"><div class="bi">${ICONS[a.on?a.icon:"lock"]}</div><div style="font-size:11px;font-weight:600;margin-top:8px">${a.lbl}</div></div>`).join("");
+}
+
+function renderProfile(){
+  $("inpName").value=userName; $("inpSurname").value=userSurname;
+  $("toggleDark").className="toggle"+(darkMode?" on":"");
+  $("langVal").textContent=UI_LANGS[ui];
+  $("learnLangVal").textContent=LEARN[lang];
+  $("avatarImg").style.display = userPhoto?"block":"none";
+  $("avatarIcon").style.display = userPhoto?"none":"block";
+  if(userPhoto) $("avatarImg").src=userPhoto;
+  $("infoPanel").style.display = infoOpen?"block":"none";
+  $("infoPanel").textContent = "WordFlip v1.0 — карточки и игры для изучения иностранных слов. Интерфейс доступен на русском, английском, немецком и таджикском языках.";
+}
+
+function renderOnboarding(){
+  $("onbList").innerHTML = Object.entries(LEARN).map(([c,n])=>`
+    <div class="prow" data-onb="${c}" style="${c===lang?'border-color:var(--accent);background:var(--accentbg)':''}">
+      <div class="pic" style="width:36px;height:36px;${c===lang?'background:var(--accent)':'background:var(--accentbg)'}"><span style="font-weight:800;font-size:13px;color:${c===lang?'#fff':'var(--accent)'}">${c.toUpperCase()}</span></div>
+      <div style="flex:1;font-weight:600">${n}</div>
+      ${c===lang?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>':''}
+    </div>`).join("");
+}
+
+document.addEventListener("click", e=>{
+  const el = e.target.closest("button, .tile, .slot, [data-go], [data-nav], [data-onb], [data-back-to], #rowDark, #toggleDark, #rowLang, #rowLearnLang, #rowAbout, #btnLogout, #avatarBox, #btnPhoto, .wod");
+  if(!el) return;
+
+  if(el.dataset.lang){ lang=el.dataset.lang; setMode(mode); return; }
+  if(el.dataset.mode){ setMode(el.dataset.mode); return; }
+
+  if(el.id==="show") return flip();
+  if(el.id==="yes") return answer(true);
+  if(el.id==="no") return answer(false);
+  if(el.id==="restart") return restart();
+  if(el.dataset.opt!==undefined){ const i=+el.dataset.opt; if(mode==="guess") return pickGuess(i); if(mode==="speed") return pickSpeed(i); }
+  if(el.id==="next"){ if(mode==="guess") return nextGuess(); if(mode==="scramble") return nextScramble(); }
+  if(el.id==="replay"){ if(mode==="guess"){startGuess();return renderTrainer();} if(mode==="scramble"){startScramble();return renderTrainer();} if(mode==="speed"){startSpeed();return renderTrainer();} }
+  if(el.dataset.tile!==undefined) return tileClick(+el.dataset.tile);
+  if(el.dataset.slot!==undefined) return slotClick(+el.dataset.slot);
+  if(el.id==="clearS") return clearScramble();
+  if(el.id==="btnBack"){ if(speedState&&speedState.timer) clearInterval(speedState.timer); return goScreen("home"); }
+  if(el.dataset.backTo){ if(speedState&&speedState.timer) clearInterval(speedState.timer); return goScreen(el.dataset.backTo); }
+
+  if(el.id==="btnLogin"){
+    const nm=$("loginName").value.trim();
+    userName = nm || userName || "Без имени";
+    loggedIn = true;
+    onboarded ? goScreen("home") : goScreen("onb");
+    return;
+  }
+  if(el.id==="btnOnbNext"){ onboarded=true; goScreen("home"); return; }
+  if(el.dataset.onb){ lang=el.dataset.onb; renderOnboarding(); saveState(); return; }
+
+  if(el.dataset.go==="trainer"){ goScreen("trainer"); setMode(el.dataset.gmode||"cards"); return; }
+  if(el.classList.contains("wod")){ goScreen("trainer"); setMode("cards"); return; }
+
+  if(el.dataset.nav) return goScreen(el.dataset.nav);
+
+  if(el.id==="rowDark"||el.id==="toggleDark"){ darkMode=!darkMode; document.documentElement.classList.toggle("dark",darkMode); renderProfile(); saveState(); return; }
+  if(el.id==="rowLang"){ const codes=Object.keys(UI_LANGS); ui=codes[(codes.indexOf(ui)+1)%codes.length]; renderProfile(); saveState(); return; }
+  if(el.id==="rowLearnLang"){ const codes=Object.keys(LEARN); lang=codes[(codes.indexOf(lang)+1)%codes.length]; renderProfile(); saveState(); return; }
+  if(el.id==="rowAbout"){ infoOpen=!infoOpen; renderProfile(); return; }
+  if(el.id==="btnLogout"){ loggedIn=false; saveState(); $("loginName").value=""; goScreen("login"); return; }
+  if(el.id==="avatarBox"||el.id==="btnPhoto"){ $("photoInput").click(); return; }
+  if(el.id==="addBtn2") return addWord2();
+  saveState();
+});
+
+document.addEventListener("input", e=>{
+  if(e.target.id==="inpName"){ userName=e.target.value||"Без имени"; }
+  if(e.target.id==="inpSurname"){ userSurname=e.target.value; }
+});
+
+$("photoInput").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=()=>{ userPhoto=reader.result; renderProfile(); };
+  reader.readAsDataURL(f);
+});
+
+function saveState(){
+  try{
+    localStorage.setItem("wordflip_state", JSON.stringify({
+      loggedIn, onboarded, ui, lang, darkMode, userName, userSurname, userPhoto,
+      gamesPlayed, bestAccuracy, known:Array.from(known), custom
+    }));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem("wordflip_state");
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    loggedIn=!!s.loggedIn; onboarded=!!s.onboarded; ui=s.ui||"ru"; lang=s.lang||"en";
+    darkMode=!!s.darkMode; userName=s.userName||""; userSurname=s.userSurname||""; userPhoto=s.userPhoto||null;
+    gamesPlayed=s.gamesPlayed||0; bestAccuracy=s.bestAccuracy||0;
+    known=new Set(s.known||[]);
+    if(s.custom) Object.keys(custom).forEach(k=>{ custom[k]=s.custom[k]||[]; });
+    return true;
+  }catch(e){ return false; }
+}
+
+loadState();
+document.documentElement.classList.toggle("dark", darkMode);
+if(loggedIn && onboarded) goScreen("home");
+else if(loggedIn) goScreen("onb");
+else goScreen("login");
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
