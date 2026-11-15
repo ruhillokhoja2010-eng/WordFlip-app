@@ -6,9 +6,8 @@
 <title>WordFlip</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-<meta name="theme-color" content="#0a1628">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="theme-color" content="#fd6a45">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WordFlip">
@@ -259,13 +258,13 @@ const LEARN = {en:"English", de:"Deutsch", es:"Español", fr:"Français", zh:"�
 const MODES = ["cards","guess","scramble","speed"];
 
 const T = {
-  en:{title:"Flashcards",lang:"Language to learn",mode:"Mode",known:"Known",left:"Left",flip:"Tap the card to see the translation",show:"Show answer",know:"I know it",dont:"Don't know",done:"All words in this deck are learned!",again:"Start again",add:"+ Add my own word",word:"Word",tr:"Translation",save:"Save word",empty:"Enter a word and its translation",
+  en:{title:"Flashcards",lang:"Language to learn",mode:"Mode",known:"Known",left:"Left",flip:"Do you know this word?",show:"Show answer",know:"I know it",dont:"Don't know",done:"All words in this deck are learned!",again:"Start again",add:"+ Add my own word",word:"Word",tr:"Translation",save:"Save word",empty:"Enter a word and its translation",
     modeCards:"Flashcards",modeGuess:"Guess",modeScramble:"Unscramble",modeSpeed:"Speed",score:"Score",next:"Next",playAgain:"Play again",roundDone:"Round complete!",timeUp:"Time's up!",clear:"Clear",time:"Time",correctIs:"Correct answer:"},
-  ru:{title:"Карточки",lang:"Язык для изучения",mode:"Режим",known:"Выучено",left:"Осталось",flip:"Нажмите на карточку, чтобы увидеть перевод",show:"Показать ответ",know:"Знаю",dont:"Не знаю",done:"Все слова колоды выучены!",again:"Начать заново",add:"+ Добавить своё слово",word:"Слово",tr:"Перевод",save:"Сохранить",empty:"Введите слово и перевод",
+  ru:{title:"Карточки",lang:"Язык для изучения",mode:"Режим",known:"Выучено",left:"Осталось",flip:"Знаете это слово?",show:"Показать ответ",know:"Знаю",dont:"Не знаю",done:"Все слова колоды выучены!",again:"Начать заново",add:"+ Добавить своё слово",word:"Слово",tr:"Перевод",save:"Сохранить",empty:"Введите слово и перевод",
     modeCards:"Карточки",modeGuess:"Угадай",modeScramble:"Собери",modeSpeed:"Скорость",score:"Счёт",next:"Далее",playAgain:"Играть снова",roundDone:"Раунд завершён!",timeUp:"Время вышло!",clear:"Очистить",time:"Время",correctIs:"Правильный ответ:"},
-  tg:{title:"Кортҳо",lang:"Забони омӯзиш",mode:"Реҷа",known:"Омӯхта",left:"Монда",flip:"Барои дидани тарҷума кортро пахш кунед",show:"Ҷавобро нишон деҳ",know:"Медонам",dont:"Намедонам",done:"Ҳама калимаҳои ин маҷмӯа омӯхта шуданд!",again:"Аз нав оғоз",add:"+ Калимаи худро илова кунед",word:"Калима",tr:"Тарҷума",save:"Захира кардан",empty:"Калима ва тарҷумаро ворид кунед",
+  tg:{title:"Кортҳо",lang:"Забони омӯзиш",mode:"Реҷа",known:"Омӯхта",left:"Монда",flip:"Ин калимаро медонед?",show:"Ҷавобро нишон деҳ",know:"Медонам",dont:"Намедонам",done:"Ҳама калимаҳои ин маҷмӯа омӯхта шуданд!",again:"Аз нав оғоз",add:"+ Калимаи худро илова кунед",word:"Калима",tr:"Тарҷума",save:"Захира кардан",empty:"Калима ва тарҷумаро ворид кунед",
     modeCards:"Кортҳо",modeGuess:"Тахмин",modeScramble:"Ҷамъ кун",modeSpeed:"Суръат",score:"Хол",next:"Баъдӣ",playAgain:"Бозӣ аз нав",roundDone:"Давра анҷом ёфт!",timeUp:"Вақт тамом шуд!",clear:"Пок кардан",time:"Вақт",correctIs:"Ҷавоби дуруст:"},
-  de:{title:"Karteikarten",lang:"Lernsprache",mode:"Modus",known:"Gelernt",left:"Übrig",flip:"Tippen Sie auf die Karte, um die Übersetzung zu sehen",show:"Antwort zeigen",know:"Ich weiß es",dont:"Weiß ich nicht",done:"Alle Wörter dieses Decks sind gelernt!",again:"Neu starten",add:"+ Eigenes Wort hinzufügen",word:"Wort",tr:"Übersetzung",save:"Speichern",empty:"Wort und Übersetzung eingeben",
+  de:{title:"Karteikarten",lang:"Lernsprache",mode:"Modus",known:"Gelernt",left:"Übrig",flip:"Kennst du dieses Wort?",show:"Antwort zeigen",know:"Ich weiß es",dont:"Weiß ich nicht",done:"Alle Wörter dieses Decks sind gelernt!",again:"Neu starten",add:"+ Eigenes Wort hinzufügen",word:"Wort",tr:"Übersetzung",save:"Speichern",empty:"Wort und Übersetzung eingeben",
     modeCards:"Karten",modeGuess:"Raten",modeScramble:"Wort bilden",modeSpeed:"Tempo",score:"Punkte",next:"Weiter",playAgain:"Nochmal spielen",roundDone:"Runde beendet!",timeUp:"Zeit abgelaufen!",clear:"Löschen",time:"Zeit",correctIs:"Richtige Antwort:"}
 };
 
@@ -294,12 +293,13 @@ function deck(){
   return BASE.map((w,i)=>({id:lang+i, front:w.L[lang], back:w.t[ui], pron:(w.p&&w.p[lang])||""})).concat(custom[lang]);
 }
 
-function rebuild(){ queue = deck().filter(c=>!known.has(c.id)).sort(()=>Math.random()-0.5); flipped=false; renderTrainer(); }
-function flip(){ flipped=true; renderTrainer(); }
-function answer(ok){
+let pendingKnown=null;
+function rebuild(){ queue = deck().filter(c=>!known.has(c.id)).sort(()=>Math.random()-0.5); flipped=false; pendingKnown=null; renderTrainer(); }
+function chooseKnow(ok){ pendingKnown=ok; flipped=true; renderTrainer(); }
+function nextCard(){
   const c = queue.shift();
-  if (ok) known.add(c.id); else queue.splice(Math.min(queue.length,2+Math.floor(Math.random()*3)),0,c);
-  flipped=false; renderTrainer();
+  if (pendingKnown) known.add(c.id); else queue.splice(Math.min(queue.length,2+Math.floor(Math.random()*3)),0,c);
+  flipped=false; pendingKnown=null; renderTrainer();
 }
 function restart(){ deck().forEach(c=>known.delete(c.id)); rebuild(); }
 
@@ -396,8 +396,8 @@ function renderCards(t,card,btns){
   if(!queue.length){ card.innerHTML=`<div class="end">${t.done}</div>`; card.onclick=null; btns.innerHTML=`<button class="act main" id="restart">${t.again}</button>`; return; }
   const c=queue[0];
   card.innerHTML=`<div class="word">${esc(c.front)}</div>`+(c.pron?`<div class="pron">${esc(c.pron)}</div>`:"")+(flipped?`<div class="tr">${esc(c.back)}</div>`:`<div class="hint">${t.flip}</div>`);
-  card.onclick=()=>{ if(!flipped) flip(); };
-  btns.innerHTML=flipped?`<button class="act bad" id="no">${t.dont}</button><button class="act ok" id="yes">${t.know}</button>`:`<button class="act main" id="show">${t.show}</button>`;
+  card.onclick=null;
+  btns.innerHTML=flipped?`<button class="act main" id="nextCard">${t.next}</button>`:`<button class="act bad" id="no">${t.dont}</button><button class="act ok" id="yes">${t.know}</button>`;
 }
 
 function renderGuess(t,card,btns){
@@ -533,15 +533,15 @@ function renderOnboarding(){
 }
 
 document.addEventListener("click", e=>{
-  const el = e.target.closest("button, .tile, .slot, [data-go], [data-nav], [data-onb], [data-back-to], #rowDark, #toggleDark, #rowLang, #rowLearnLang, #rowAbout, #btnLogout, #avatarBox, #btnPhoto, .wod");
+  const el = e.target.closest("button, .back, .tile, .slot, [data-go], [data-nav], [data-onb], [data-back-to], #rowDark, #toggleDark, #rowLang, #rowLearnLang, #rowAbout, #btnLogout, #avatarBox, #btnPhoto, .wod");
   if(!el) return;
 
   if(el.dataset.lang){ lang=el.dataset.lang; setMode(mode); return; }
   if(el.dataset.mode){ setMode(el.dataset.mode); return; }
 
-  if(el.id==="show") return flip();
-  if(el.id==="yes") return answer(true);
-  if(el.id==="no") return answer(false);
+  if(el.id==="yes") return chooseKnow(true);
+  if(el.id==="no") return chooseKnow(false);
+  if(el.id==="nextCard") return nextCard();
   if(el.id==="restart") return restart();
   if(el.dataset.opt!==undefined){ const i=+el.dataset.opt; if(mode==="guess") return pickGuess(i); if(mode==="speed") return pickSpeed(i); }
   if(el.id==="next"){ if(mode==="guess") return nextGuess(); if(mode==="scramble") return nextScramble(); }
